@@ -46,11 +46,12 @@ public class ResponseUtil {
         return tcpServerPort < 0;
     }
 
-    public static byte[] wrap(int port) {
-        ByteBuffer sendBuffer = ByteBuffer.allocate(64);
+    public static ByteBuffer wrap(byte[] buffer,int port,byte[] sn) {
+        ByteBuffer sendBuffer = ByteBuffer.wrap(buffer);
         sendBuffer.put(HEADER);
-        sendBuffer.putShort((short) 1);
+        sendBuffer.putShort((short) 2);
         sendBuffer.putInt(port);
-        return Arrays.copyOf(sendBuffer.array(), sendBuffer.position() + 1);
+        sendBuffer.put(sn);
+        return sendBuffer;
     }
 }

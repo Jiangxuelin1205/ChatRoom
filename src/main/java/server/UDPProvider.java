@@ -1,5 +1,6 @@
 package server;
 
+import clink.utils.ResponseUtil;
 import constants.TCPConstants;
 import constants.UDPConstants;
 import clink.utils.ByteUtils;
@@ -20,8 +21,8 @@ class UDPProvider {
         stop();
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn);
-        Thread thread = new Thread(provider);
-        thread.start();
+        Thread providerThread = new Thread(provider);
+        providerThread.start();
         PROVIDER_INSTANCE = provider;
     }
 
@@ -37,7 +38,6 @@ class UDPProvider {
         private final int port;
         private boolean done = false;
         private DatagramSocket ds = null;
-        // 存储消息的Buffer
         final byte[] buffer = new byte[128];
 
         Provider(String sn) {
@@ -79,15 +79,9 @@ class UDPProvider {
                             ((clientData[index] & 0xff)));
 
                     // 判断合法性
-                    if (cmd == 1 && responsePort > 0) {
-                        // 构建一份回送数据
-                        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-                        byteBuffer.put(UDPConstants.HEADER);
-                        byteBuffer.putShort((short) 2);
-                        byteBuffer.putInt(port);
-                        byteBuffer.put(sn);
+                    if (cmd == 1 && responsePort > 0) {//response wrap
+                        ByteBuffer byteBuffer = ResponseUtil.wrap(buffer,port, sn);
                         int len = byteBuffer.position();
-                        // 直接根据发送者构建一份回送信息
                         DatagramPacket responsePacket = new DatagramPacket(buffer,
                                 len,
                                 receivePack.getAddress(),
@@ -113,6 +107,7 @@ class UDPProvider {
                 ds = null;
             }
         }
+
         void exit() {
             done = true;
             close();

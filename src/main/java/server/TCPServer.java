@@ -45,10 +45,8 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
             this.server = server;
 
-
             log.info("服务器信息：" + server.getLocalAddress().toString());
 
-            // 启动客户端监听
             ClientListener listener = this.listener = new ClientListener();
             listener.start();
         } catch (IOException e) {
