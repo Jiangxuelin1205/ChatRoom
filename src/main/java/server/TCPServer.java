@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 public class TCPServer implements ClientHandler.ClientHandlerCallback {
     private final int port;
@@ -23,6 +24,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
     private final ExecutorService forwardingThreadPoolExecutor;
     private Selector selector;
     private ServerSocketChannel server;
+    private static Logger log = Logger.getLogger("TCPServer");
 
     TCPServer(int port) {
         this.port = port;
@@ -44,7 +46,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             this.server = server;
 
 
-            System.out.println("服务器信息：" + server.getLocalAddress().toString());
+            log.info("服务器信息：" + server.getLocalAddress().toString());
 
             // 启动客户端监听
             ClientListener listener = this.listener = new ClientListener();
@@ -111,7 +113,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
         public void run() {
             super.run();
             Selector selector = TCPServer.this.selector;
-            System.out.println("服务器准备就绪～");
+           log.info("服务器准备就绪～");
             // 等待客户端连接
             do {
                 // 得到客户端
@@ -158,7 +160,7 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
 
             } while (!done);
 
-            System.out.println("服务器已关闭！");
+           log.info("服务器已关闭！");
         }
 
         void exit() {

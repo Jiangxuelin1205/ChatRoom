@@ -35,13 +35,11 @@ public class Client {
     private static void write(TCPClient tcpClient) throws IOException {
         InputStream in = System.in;
         BufferedReader input = new BufferedReader(new InputStreamReader(in));
+        String str;
         do {
-            String str = input.readLine();
+            str = input.readLine();
             tcpClient.send(str);
-            if (str.equalsIgnoreCase("00bye00")) {
-                break;
-            }
-        } while (true);
+        } while (!str.equalsIgnoreCase("00bye00"));
     }
 
 }

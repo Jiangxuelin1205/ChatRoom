@@ -1,5 +1,6 @@
 package server;
 
+import constants.TCPConstants;
 import constants.UDPConstants;
 import clink.utils.ByteUtils;
 
@@ -7,16 +8,20 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
+    private final static int TCP_SERVER_PORT = TCPConstants.PORT_SERVER;
+    private static Logger log = Logger.getLogger("UDPProvider");
 
-    static void start(int port) {
+    static void start() {
         stop();
         String sn = UUID.randomUUID().toString();
-        Provider provider = new Provider(sn, port);
-        provider.start();
+        Provider provider = new Provider(sn);
+        Thread thread = new Thread(provider);
+        thread.start();
         PROVIDER_INSTANCE = provider;
     }
 
@@ -27,7 +32,7 @@ class UDPProvider {
         }
     }
 
-    private static class Provider extends Thread {
+    private static class Provider implements Runnable {
         private final byte[] sn;
         private final int port;
         private boolean done = false;
@@ -35,18 +40,15 @@ class UDPProvider {
         // 存储消息的Buffer
         final byte[] buffer = new byte[128];
 
-        Provider(String sn, int port) {
+        Provider(String sn) {
             super();
             this.sn = sn.getBytes();
-            this.port = port;
+            this.port = TCP_SERVER_PORT;
         }
 
         @Override
         public void run() {
-            super.run();
-
-            System.out.println("UDPProvider Started.");
-
+            log.info("UDP Provider started");
             try {
                 // 监听20000 端口
                 ds = new DatagramSocket(UDPConstants.SERVER_PORT);
@@ -55,27 +57,20 @@ class UDPProvider {
 
                 while (!done) {
 
-                    // 接收
                     ds.receive(receivePack);
 
-                    // 打印接收到的信息与发送者的信息
-                    // 发送者的IP地址
                     String clientIp = receivePack.getAddress().getHostAddress();
                     int clientPort = receivePack.getPort();
                     int clientDataLen = receivePack.getLength();
                     byte[] clientData = receivePack.getData();
                     boolean isValid = clientDataLen >= (UDPConstants.HEADER.length + 2 + 4)
                             && ByteUtils.startsWith(clientData, UDPConstants.HEADER);
-
-                    System.out.println("UDPProvider receive form ip:" + clientIp
+                    log.info("UDPProvider receive form ip:" + clientIp
                             + "\tport:" + clientPort + "\tdataValid:" + isValid);
-
                     if (!isValid) {
                         // 无效继续
                         continue;
                     }
-
-                    // 解析命令与回送端口
                     int index = UDPConstants.HEADER.length;
                     short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
                     int responsePort = (((clientData[index++]) << 24) |
@@ -98,18 +93,18 @@ class UDPProvider {
                                 receivePack.getAddress(),
                                 responsePort);
                         ds.send(responsePacket);
-                        System.out.println("UDPProvider response to:" + clientIp + "\tport:" + responsePort + "\tdataLen:" + len);
+                        log.info("UDP Provider response to:" + clientIp +
+                                "\tport:" + responsePort + "\tdataLen:" + len);
                     } else {
-                        System.out.println("UDPProvider receive cmd nonsupport; cmd:" + cmd + "\tport:" + port);
+                        log.info("UDP Provider receive cmd nonsupport; cmd:"
+                                + cmd + "\tport:" + port);
                     }
                 }
             } catch (Exception ignored) {
             } finally {
                 close();
             }
-
-            // 完成
-            System.out.println("UDPProvider Finished.");
+            log.info("UDP Provider finished");
         }
 
         private void close() {
@@ -118,10 +113,6 @@ class UDPProvider {
                 ds = null;
             }
         }
-
-        /**
-         * 提供结束
-         */
         void exit() {
             done = true;
             close();
