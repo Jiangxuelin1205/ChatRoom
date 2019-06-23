@@ -1,5 +1,6 @@
 package server;
 
+import client.bean.ClientInfo;
 import constants.TCPConstants;
 import constants.UDPConstants;
 import clink.utils.ByteUtils;
@@ -14,8 +15,7 @@ class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
     private final static int TCP_SERVER_PORT = TCPConstants.PORT_SERVER;
-    private final static int UDP_SERVER_PORT=UDPConstants.SERVER_PORT;
-    private final static byte[] HEADER=UDPConstants.HEADER;
+    private final static int UDP_SERVER_PORT = UDPConstants.SERVER_PORT;
     private static Logger log = Logger.getLogger("UDPProvider");
 
     static void start() {
@@ -38,8 +38,8 @@ class UDPProvider {
         private final byte[] sn;
         private final int port;
         private boolean done = false;
-        private DatagramSocket ds = null;
-        final byte[] buffer = new byte[128];
+        private DatagramSocket datagramSocket = null;
+
 
         Provider(String sn) {
             super();
@@ -51,62 +51,40 @@ class UDPProvider {
         public void run() {
             log.info("UDP Provider started");
             try {
-                // 监听20000 端口
-                ds = new DatagramSocket(UDP_SERVER_PORT);
-                // 接收消息的Packet
-                DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
+
+                datagramSocket = new DatagramSocket(UDP_SERVER_PORT);
+
 
                 while (!done) {
-
-                    ds.receive(receivePack);
-
-                    String clientIp = receivePack.getAddress().getHostAddress();
-                    int clientPort = receivePack.getPort();
-                    int clientDataLen = receivePack.getLength();
-                    byte[] clientData = receivePack.getData();
-                    boolean isValid = clientDataLen >= (HEADER.length + 2 + 4)
-                            && ByteUtils.startsWith(clientData, HEADER);
-                    log.info("UDPProvider receive form ip:" + clientIp
-                            + "\tport:" + clientPort + "\tdataValid:" + isValid);
-                    if (!isValid) {
-                        // 无效继续
-                        continue;
-                    }
-                    int index = HEADER.length;
-                    short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
-                    int responsePort = (((clientData[index++]) << 24) |
-                            ((clientData[index++] & 0xff) << 16) |
-                            ((clientData[index++] & 0xff) << 8) |
-                            ((clientData[index] & 0xff)));
-
                     // 判断合法性
-                    if (cmd == 1 && responsePort > 0) {//response wrap
-                        ByteBuffer byteBuffer = ServerUtil.wrap(buffer,port, sn);
-                        int len = byteBuffer.position();
-                        DatagramPacket responsePacket = new DatagramPacket(buffer,
-                                len,
-                                receivePack.getAddress(),
-                                responsePort);
-                        ds.send(responsePacket);
-                        log.info("UDP Provider response to:" + clientIp +
-                                "\tport:" + responsePort + "\tdataLen:" + len);
-                    } else {
-                        log.info("UDP Provider receive cmd nonsupport; cmd:"
-                                + cmd + "\tport:" + port);
-                    }
+                    ClientInfo clientInfo = ServerUtil.unwrap(datagramSocket);
+                    ByteBuffer sendBuffer = ServerUtil.wrap(port, sn);
+                    int len = sendBuffer.position();
+                    DatagramPacket responsePacket = new DatagramPacket(sendBuffer.array(),
+                            len,
+                            clientInfo.ip,
+                            clientInfo.port);
+                    datagramSocket.send(responsePacket);
+                     /*   log.info("UDP Provider response to:" + clientIp +
+                                "\tport:" + responsePort + "\tdataLen:" + len);*/
                 }
-            } catch (Exception ignored) {
+            } catch (
+                    Exception ignored)
 
-            } finally {
+            {
+
+            } finally
+
+            {
                 close();
             }
             log.info("UDP Provider finished");
         }
 
         private void close() {
-            if (ds != null) {
-                ds.close();
-                ds = null;
+            if (datagramSocket != null) {
+                datagramSocket.close();
+                datagramSocket = null;
             }
         }
 

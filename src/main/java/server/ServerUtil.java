@@ -2,32 +2,59 @@ package server;
 
 import client.bean.ClientInfo;
 import client.exception.UDPSearcherException;
+import clink.utils.ByteUtils;
 import constants.UDPConstants;
+import server.exception.UDPProviderException;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
-public class ServerUtil {
+class ServerUtil {
 
-    private final static int MIN_LENGTH = UDPConstants.MIN_LENGTH;
     private final static byte[] HEADER = UDPConstants.HEADER;
 
-    public static ClientInfo unwrap(DatagramPacket receivedPacket) throws UDPSearcherException {
-        if (receivedPacket.getData().length < MIN_LENGTH) {
-            throw new UDPSearcherException("Received packet is invalid");
+    static ClientInfo unwrap(DatagramSocket datagramSocket) throws UDPSearcherException, IOException {
+        final byte[] buffer = new byte[128];
+        DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
+        datagramSocket.receive(receivePack);
+        int totalLength = receivePack.getLength();
+        String clientIp = receivePack.getAddress().getHostAddress();
+        //noinspection unused
+        int clientPort = receivePack.getPort();
+        byte[] data = receivePack.getData();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, HEADER.length, totalLength);
+        final short cmd = byteBuffer.getShort();
+        final int responsePort = byteBuffer.getInt();
+          /*  int index = HEADER.length;
+                    short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
+                    int responsePort = (((clientData[index++]) << 24) |
+                            ((clientData[index++] & 0xff) << 16) |
+                            ((clientData[index++] & 0xff) << 8) |
+                            ((clientData[index] & 0xff)));*/
+
+        if (isValid(totalLength, data, cmd, responsePort)) {
+            return new ClientInfo(receivePack.getAddress(), responsePort);
+        } else {
+            throw new UDPProviderException("inform invalid");
         }
-        byte[] data = receivedPacket.getData();
-        ByteBuffer receivedBuffer = ByteBuffer.wrap(data, 0, data.length);
-        byte[] header = new byte[HEADER.length];
-        receivedBuffer.get(header, 0, HEADER.length);
-        if (!Arrays.equals(header, HEADER)) {
-            throw new UDPSearcherException("Received packet header is invalid");
-        }
-        return new ClientInfo(receivedPacket.getAddress().getHostAddress(), receivedPacket.getPort());
     }
 
-    static ByteBuffer wrap(byte[] buffer, int port, byte[] sn) {
+    private static boolean isValid(int totalLength, byte[] data, short cmd, int responsePort) {
+        boolean isValidTotalLength = totalLength >= UDPConstants.MIN_LENGTH;
+        boolean isValidHeader = ByteUtils.startsWith(data, HEADER);
+        if (!isValidHeader && isValidTotalLength) {
+            return false;
+        }
+        if (cmd == 1 && responsePort > 0) {
+            return true;
+        }
+        return true;
+    }
+
+    static ByteBuffer wrap(int port, byte[] sn) {
+        byte[] buffer=new byte[128];
         ByteBuffer sendBuffer = ByteBuffer.wrap(buffer);
         sendBuffer.put(HEADER);
         sendBuffer.putShort((short) 2);

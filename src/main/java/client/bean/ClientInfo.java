@@ -1,11 +1,13 @@
 package client.bean;
 
+import java.net.InetAddress;
+
 public class ClientInfo {
 
-    String ip;
-    int port;
+    public InetAddress ip;
+    public int port;
 
-    public ClientInfo(String ip, int port) {
+    public ClientInfo(InetAddress ip, int port) {
         this.ip = ip;
         this.port = port;
     }
