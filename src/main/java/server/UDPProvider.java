@@ -1,6 +1,5 @@
 package server;
 
-import clink.utils.ResponseUtil;
 import constants.TCPConstants;
 import constants.UDPConstants;
 import clink.utils.ByteUtils;
@@ -82,7 +81,7 @@ class UDPProvider {
 
                     // 判断合法性
                     if (cmd == 1 && responsePort > 0) {//response wrap
-                        ByteBuffer byteBuffer = ResponseUtil.wrap(buffer,port, sn);
+                        ByteBuffer byteBuffer = ServerUtil.wrap(buffer,port, sn);
                         int len = byteBuffer.position();
                         DatagramPacket responsePacket = new DatagramPacket(buffer,
                                 len,

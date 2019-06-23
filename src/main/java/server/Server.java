@@ -23,7 +23,6 @@ public class Server {
         if (!isSucceed) {
            throw new TCPServerException("tcp server start unsucceed");
         }
-
         UDPProvider.start();
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));

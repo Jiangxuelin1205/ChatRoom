@@ -2,8 +2,6 @@ package client;
 
 import client.bean.ServerInfo;
 import client.exception.UDPSearcherException;
-import clink.utils.RequestUtil;
-import clink.utils.ResponseUtil;
 import constants.UDPConstants;
 
 import java.io.IOException;
@@ -43,7 +41,7 @@ class UDPSearcher {
         log.info("UDPSearcher sendBroadcast started.");
         // 作为搜索方，让系统自动分配端口
         DatagramSocket ds = new DatagramSocket();
-        byte[] header = RequestUtil.wrap(CLIENT_RESPONSE_PORT);
+        byte[] header = ClientUtil.wrap(CLIENT_RESPONSE_PORT);
         DatagramPacket requestPacket = new DatagramPacket(header, header.length);
         requestPacket.setAddress(InetAddress.getByName("255.255.255.255"));
         requestPacket.setPort(SERVER_PORT);
@@ -75,7 +73,7 @@ class UDPSearcher {
                 ds = new DatagramSocket(listenPort);
 
                 while (!done) {
-                   serverInfo =ResponseUtil.unwrap(ds);
+                   serverInfo =ClientUtil.unwrap(ds);
                     receiveDownLatch.countDown();
                 }
             } catch (IOException ignore) {

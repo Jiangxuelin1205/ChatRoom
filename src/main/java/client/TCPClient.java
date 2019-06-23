@@ -1,6 +1,5 @@
 package client;
 
-
 import client.bean.ServerInfo;
 import client.exception.TCPClientException;
 import clink.utils.CloseUtils;

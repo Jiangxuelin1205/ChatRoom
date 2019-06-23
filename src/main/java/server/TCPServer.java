@@ -94,10 +94,8 @@ public class TCPServer implements ClientHandler.ClientHandlerCallback {
             synchronized (TCPServer.this) {
                 for (ClientHandler clientHandler : clientHandlerList) {
                     if (clientHandler.equals(handler)) {
-                        // 跳过自己
                         continue;
                     }
-                    // 对其他客户端发送消息
                     clientHandler.send(msg);
                 }
             }
