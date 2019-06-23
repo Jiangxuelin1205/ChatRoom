@@ -17,8 +17,8 @@ import java.util.logging.Logger;
 class UDPSearcher {
 
     private static Logger log = Logger.getLogger("udpSearcher");
-    private static final int CLIENT_RESPONSE_PORT=UDPConstants.CLIENT_RESPONSE_PORT;
-    private static final int SERVER_PORT=UDPConstants.SERVER_PORT;
+    private static final int CLIENT_RESPONSE_PORT = UDPConstants.CLIENT_RESPONSE_PORT;
+    private static final int SERVER_PORT = UDPConstants.SERVER_PORT;
 
     static ServerInfo searchServer(int timeout) {
         log.info("UDPSearcher Started");
@@ -58,7 +58,6 @@ class UDPSearcher {
         private final CountDownLatch startDownLatch;
         private final CountDownLatch receiveDownLatch;
         ServerInfo serverInfo;
-        private final byte[] buffer = new byte[128];
         private boolean done = false;
         private DatagramSocket ds;
 
@@ -74,10 +73,9 @@ class UDPSearcher {
             startDownLatch.countDown();
             try {
                 ds = new DatagramSocket(listenPort);
-                DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
+
                 while (!done) {
-                    ds.receive(receivePack);
-                    serverInfo = ResponseUtil.unwrap(buffer, receivePack);
+                   serverInfo =ResponseUtil.unwrap(ds);
                     receiveDownLatch.countDown();
                 }
             } catch (IOException ignore) {

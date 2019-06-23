@@ -15,6 +15,8 @@ class UDPProvider {
 
     private static Provider PROVIDER_INSTANCE;
     private final static int TCP_SERVER_PORT = TCPConstants.PORT_SERVER;
+    private final static int UDP_SERVER_PORT=UDPConstants.SERVER_PORT;
+    private final static byte[] HEADER=UDPConstants.HEADER;
     private static Logger log = Logger.getLogger("UDPProvider");
 
     static void start() {
@@ -51,7 +53,7 @@ class UDPProvider {
             log.info("UDP Provider started");
             try {
                 // 监听20000 端口
-                ds = new DatagramSocket(UDPConstants.SERVER_PORT);
+                ds = new DatagramSocket(UDP_SERVER_PORT);
                 // 接收消息的Packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
 
@@ -63,15 +65,15 @@ class UDPProvider {
                     int clientPort = receivePack.getPort();
                     int clientDataLen = receivePack.getLength();
                     byte[] clientData = receivePack.getData();
-                    boolean isValid = clientDataLen >= (UDPConstants.HEADER.length + 2 + 4)
-                            && ByteUtils.startsWith(clientData, UDPConstants.HEADER);
+                    boolean isValid = clientDataLen >= (HEADER.length + 2 + 4)
+                            && ByteUtils.startsWith(clientData, HEADER);
                     log.info("UDPProvider receive form ip:" + clientIp
                             + "\tport:" + clientPort + "\tdataValid:" + isValid);
                     if (!isValid) {
                         // 无效继续
                         continue;
                     }
-                    int index = UDPConstants.HEADER.length;
+                    int index = HEADER.length;
                     short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
                     int responsePort = (((clientData[index++]) << 24) |
                             ((clientData[index++] & 0xff) << 16) |
@@ -95,6 +97,7 @@ class UDPProvider {
                     }
                 }
             } catch (Exception ignored) {
+
             } finally {
                 close();
             }

@@ -4,9 +4,10 @@ import client.bean.ServerInfo;
 import client.exception.UDPSearcherException;
 import constants.UDPConstants;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class ResponseUtil {
@@ -16,14 +17,19 @@ public class ResponseUtil {
     private final static byte[] HEADER = UDPConstants.HEADER;
     private final static int SERVER_COMMAND=2;
 
-    public static ServerInfo unwrap(byte[] buffer, DatagramPacket receivePacket) throws UDPSearcherException {
-        int totalLength = receivePacket.getLength();
-        String ip = receivePacket.getAddress().getHostAddress();
-        int udpServerPort = receivePacket.getPort();
-        byte[] data = receivePacket.getData();
-        boolean isValid = totalLength >= MIN_LENGTH && ByteUtils.startsWith(data, HEADER);
-        log.info("UDPSearcher receive form ip:" + ip//todo:如何处理每一个if 都要抛异常的情况
-                + "\tport:" + udpServerPort + "\tdataValid:" + isValid);
+    public static ServerInfo unwrap(DatagramSocket ds) throws UDPSearcherException, IOException {
+        byte[] buffer=new byte[128];
+        DatagramPacket receivedPacket=new DatagramPacket(buffer,buffer.length);
+        ds.receive(receivedPacket);
+        int totalLength = receivedPacket.getLength();
+        String ip = receivedPacket.getAddress().getHostAddress();
+        int udpServerPort = receivedPacket.getPort();
+        byte[] data = receivedPacket.getData();
+        boolean isValid = totalLength >= MIN_LENGTH && ByteUtils.startsWith(data, HEADER);//todo:分开条件
+
+        log.info("UDPSearcher receive form ip:" + ip
+                + "\tport:" + udpServerPort + "\tdataValid:" + isValid);//todo:assert类处理异常
+
         if (!isValid) {
             throw new UDPSearcherException("Server response is invalid");
         }
@@ -38,6 +44,7 @@ public class ResponseUtil {
         if (invalidPort(tcpServerPort)) {
             throw new UDPSearcherException("tcpServerPort is invalid");
         }
+
         String sn = new String(buffer, MIN_LENGTH, totalLength - MIN_LENGTH);
         return new ServerInfo(tcpServerPort, ip, sn);
     }
