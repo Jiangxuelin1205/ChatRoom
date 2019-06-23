@@ -1,7 +1,6 @@
 package client;
 
 import client.bean.ServerInfo;
-import client.exception.UDPSearcherException;
 import constants.UDPConstants;
 
 import java.io.IOException;

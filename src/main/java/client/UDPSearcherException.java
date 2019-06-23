@@ -1,4 +1,4 @@
-package client.exception;
+package client;
 
  public class UDPSearcherException extends RuntimeException{
 

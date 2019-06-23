@@ -3,7 +3,6 @@ package server;
 import client.bean.ClientInfo;
 import constants.TCPConstants;
 import constants.UDPConstants;
-import clink.utils.ByteUtils;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -65,8 +64,6 @@ class UDPProvider {
                             clientInfo.ip,
                             clientInfo.port);
                     datagramSocket.send(responsePacket);
-                     /*   log.info("UDP Provider response to:" + clientIp +
-                                "\tport:" + responsePort + "\tdataLen:" + len);*/
                 }
             } catch (
                     Exception ignored)

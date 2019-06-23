@@ -1,9 +1,8 @@
 package server;
 
-import client.exception.UDPSearcherException;
+import client.UDPSearcherException;
 import clink.utils.ByteUtils;
 import constants.UDPConstants;
-import server.exception.TCPServerException;
 
 public class Asserts {
 

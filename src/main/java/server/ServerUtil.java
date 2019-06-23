@@ -1,10 +1,9 @@
 package server;
 
 import client.bean.ClientInfo;
-import client.exception.UDPSearcherException;
+import client.UDPSearcherException;
 import clink.utils.ByteUtils;
 import constants.UDPConstants;
-import server.exception.UDPProviderException;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -20,6 +19,7 @@ class ServerUtil {
         DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
         datagramSocket.receive(receivePack);
         int totalLength = receivePack.getLength();
+        //noinspection unused
         String clientIp = receivePack.getAddress().getHostAddress();
         //noinspection unused
         int clientPort = receivePack.getPort();
@@ -29,6 +29,7 @@ class ServerUtil {
         final int responsePort = byteBuffer.getInt();
           /*  int index = HEADER.length;
                     short cmd = (short) ((clientData[index++] << 8) | (clientData[index++] & 0xff));
+
                     int responsePort = (((clientData[index++]) << 24) |
                             ((clientData[index++] & 0xff) << 16) |
                             ((clientData[index++] & 0xff) << 8) |

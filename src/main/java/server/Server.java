@@ -3,7 +3,6 @@ package server;
 import constants.TCPConstants;
 import clink.core.IoContext;
 import clink.impl.IoSelectorProvider;
-import server.exception.TCPServerException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +20,7 @@ public class Server {
         TCPServer tcpServer = new TCPServer(TCP_SERVER_PORT);
         boolean isSucceed = tcpServer.start();
         if (!isSucceed) {
-           throw new TCPServerException("tcp server start unsucceed");
+           throw new TCPServerException("tcp server start is not succeed");
         }
         UDPProvider.start();
 
